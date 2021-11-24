@@ -2,8 +2,8 @@ servers = [
 
     {
 		:name => "servera",
+		:disk_label => "servera-disk.vdi",
 		:type => "server",
-		:disk_size => "1GB",
 		:box => "bento/centos-8",
 		:eth1 => "192.168.56.10",
 		:mem => "1024",
@@ -11,8 +11,8 @@ servers = [
 	},
 	{
 		:name => "serverb",
+		:disk_label => "serverb-disk.vdi",
 		:type => "server",
-		:disk_size => "1GB",
 		:box => "bento/centos-8",
 		:eth1 => "192.168.56.11",
 		:mem => "1024",
@@ -20,8 +20,8 @@ servers = [
 	},
 	{
 		:name => "serverc",
+		:disk_label => "serverc-disk.vdi",
 		:type => "server",
-		:disk_size => "1GB",
 		:box => "bento/centos-8",
 		:eth1 => "192.168.56.12",
 		:mem => "1024",
@@ -29,8 +29,8 @@ servers = [
 	},
     {
 		:name => "serverd",
+		:disk_label => "serverd-disk.vdi",
 		:type => "server",
-		:disk_size => "1GB",
 		:box => "bento/centos-8",
 		:eth1 => "192.168.56.13",
 		:mem => "1024",
@@ -82,26 +82,28 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
 
-		servers.each do |opts|
-				config.vm.define opts[:name] do |config|
+	servers.each do |opts|
 
-						config.vm.box = opts[:box]
-						config.vm.disk :disk, size: opts[:disk_size]
-						config.vm.box_version = opts[:box_version]
-						config.vm.hostname = opts[:name]
-						config.vm.network :private_network, ip: opts[:eth1]
+		config.vm.define opts[:name] do |config|
 
+			config.vm.box = opts[:box]
+			config.vm.box_version = opts[:box_version]
+			config.vm.hostname = opts[:name]
+			config.vm.network :private_network, ip: opts[:eth1]
+			if opts[:type] == "server"
+				config.vm.disk :disk, size: "1GB", name: opts[:disk_label]
+			end
 
-						config.vm.provider "virtualbox" do |v|
+			config.vm.provider "virtualbox" do |v|
 
-								v.name = opts[:name]
-								v.customize ["modifyvm", :id, "--groups", "/RH294 Lab"]
-								v.customize ["modifyvm", :id, "--memory", opts[:mem]]
-								v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
+				v.name = opts[:name]
+				v.customize ["modifyvm", :id, "--groups", "/RH294 Lab"]
+				v.customize ["modifyvm", :id, "--memory", opts[:mem]]
+				v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
 
-						end
+			end
 
-						config.vm.provision "shell", inline: $configureBox
+			config.vm.provision "shell", inline: $configureBox
 
 			if opts[:type] == "workstation"
 				config.vm.provision "shell", inline: $configureWorkstation
